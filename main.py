@@ -1,5 +1,10 @@
 # todo:
 # setup tkinter ui
+# he makes mistakes so... editable
+# export to excel
+# dashboard showing n of deliveries
+
+
 import sqlite3, os, sys
 import datetime, time
 
@@ -28,24 +33,16 @@ curs.execute(
 conn.commit()
 
 
-global name
-phone = ""
-address = ""
-date = ""
-destination = ""
-payment = ""
-tip = ""
-total = ""
-status = ""
-
 # Create a new order
 def create_order():
-    print("This is v3 running. Creating a new order")
+    print("Creating a new order")
     print("Please enter the following information")
+    
+    global name, phone, address, date, destination, payment, tip, total, status
 
     # Get the customer's name
     while True:
-        global name = input("Customer's name: ")
+        name = input("Customer's name: ")
         if name == "":
             print("Please enter a name")
         else:
@@ -111,17 +108,10 @@ def create_order():
         else:
             break
 
-
 create_order()
 
-print("name:"+name+"right")
-
-curs.execute('INSERT INTO order_history (name, phone, address, date, destination, payment, tip, total, status) VALUES (?,?,?,?,?,?,?,?,?)', (name,phone,address,date,destination,payment,tip,total,status))
-
+curs.execute('INSERT INTO order_history (name, phone, address, date, destination, payment, tip, total, status) VALUES (?,?,?,?,?,?,?,?,?)', (name, phone, address, date, destination, payment, tip, total, status))
 conn.commit()
-
-
-    # (%s,%s,%s,%s,%s,%s,%s,%s,%s)
 
 curs.execute(
 	"""
@@ -131,3 +121,4 @@ curs.execute(
 
 result = curs.fetchall();
 print(result)
+
