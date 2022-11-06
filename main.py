@@ -12,23 +12,98 @@ conn = sqlite3.connect('delivery_database.db')
 curs = conn.cursor()
 
 
-
-# Create a table
+# Create the tables
 curs.execute(
     """
-     CREATE TABLE IF NOT EXISTS order_history (
-         id integer PRIMARY KEY,
-         name text,
-         phone integer,
-         address text,
-         date datetime,
-         destination text,
-         payment float,
-         tip float,
-         total float,
-         status boolean
-     );
+    create table if not exists customer(
+        customerID int primary key,
+        name varchar(30) not null,
+        phone varchar(20) not null
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists payment(
+        paymentID int primary key,
+        payment float,
+        tip float,
+        total float,
+        status binary
+    );
      """
+)
+curs.execute(
+    """
+    create table if not exists orders(
+        ordersID int primary key,
+        packageorperson VARCHAR(10),
+        date DATETIME
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists location(
+        locationID int primary key,
+        address VARCHAR(45)
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists pays(
+        paysID int primary key,
+        customerID int,
+        paymentID int,
+        foreign key (customerID) references customer (customerID) on delete cascade,
+        foreign key (paymentID) references payment (paymentID) on delete cascade
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists makes(
+        makesID int primary key,
+        customerID int,
+        orderID int,
+        foreign key (customerID) references customer (customerID) on delete cascade,
+        foreign key (orderID) references orders (orderID) on delete cascade
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists has(
+        hasID int primary key,
+        orderID int,
+        paymentID int,
+        foreign key (orderID) references orders (orderID) on delete cascade,
+        foreign key (paymentID) references payment (paymentID) on delete cascade
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists pickup(
+        pickupID int primary key,
+        orderID int,
+        locationID int,
+        foreign key (orderID) references orders (orderID) on delete cascade,
+        foreign key (locationID) references location (locationID) on delete cascade
+    );
+    """
+)
+curs.execute(
+    """
+    create table if not exists dropoff(
+        dropoffID int primary key,
+        orderID int,
+        locationID int,
+        foreign key (orderID) references orders (orderID) on delete cascade,
+        foreign key (locationID) references location (locationID) on delete cascade
+    );
+    """
 )
 conn.commit()
 
@@ -110,9 +185,21 @@ def create_order():
 
 create_order()
 
+#Legacy line so the SELECT line still works
 curs.execute('INSERT INTO order_history (name, phone, address, date, destination, payment, tip, total, status) VALUES (?,?,?,?,?,?,?,?,?)', (name, phone, address, date, destination, payment, tip, total, status))
+
+curs.execute('INSERT INTO customer (name, phone) VALUES (?,?)', (name, phone))
+curs.execute('INSERT INTO payment (payment,tip,total,status) VALUES (?,?,?,?)', (payment, tip, total,status))
+curs.execute('INSERT INTO orders (date) VALUES (?)', (date,))
+curs.execute('INSERT INTO location (address) VALUES (?)', (address,))
+curs.execute('INSERT INTO location (address) VALUES (?)', (destination,))
+
+#Also have to include the commands for the other tables, but those use the IDs of the above tables which our code doesn't include yet
+
 conn.commit()
 
+
+#Note this command is still selecting from the old table
 curs.execute(
 	"""
 	SELECT * FROM order_history
