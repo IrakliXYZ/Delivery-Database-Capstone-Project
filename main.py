@@ -115,7 +115,7 @@ def create_order():
     print("Creating a new order")
     print("Please enter the following information")
     
-    global name, phone, address, date, destination, payment, tip, total, status
+    global name, phone, address, date, destination, cpayment, tip, total, status
 
     # Get the customer's name
     while True:
@@ -154,8 +154,8 @@ def create_order():
 
     # Get the customer's payment method
     while True:
-        payment = input("Customer's payment method: ")
-        if payment == "":
+        cpayment = input("Customer's payment method: ")
+        if cpayment == "":
             print("Please enter a payment method")
         else:
             break
@@ -204,66 +204,86 @@ def check_customer():
 # Check if the payment exists, if does retrieve paymentID, if not create a new random paymentID
 def check_payment():
     global paymentID
-    curs.execute("select * from payment where payment = ? and tip = ? and total = ? and status = ?", (payment, tip, total, status))
+    curs.execute("select * from payment where payment = ? and tip = ? and total = ? and status = ?", (cpayment, tip, total, status))
     payment = curs.fetchone()
     if payment is None:
         paymentID = random.randint(100000, 999999)
-        curs.execute("insert into payment values (?, ?, ?, ?, ?)", (paymentID, payment, tip, total, status))
+        curs.execute("insert into payment values (?, ?, ?, ?, ?)", (paymentID, cpayment, tip, total, status))
         conn.commit()
     else:
         paymentID = payment[0]
         print("Payment already exists, paymentID is", paymentID)
 
 # Check if date exists, if does retrieve dateID, if not create a new random dateID
-def check_date():
-    global dateID
-    curs.execute("select * from orders where date = ?", (date))
-    date = curs.fetchone()
-    if date is None:
-        dateID = random.randint(100000, 999999)
-        curs.execute("insert into orders values (?, ?, ?)", (dateID, date))
+def check_order():
+    global orderID
+    curs.execute("select * from orders where date = ?", (date,))
+    order = curs.fetchone()
+    if order is None:
+        orderID = random.randint(100000, 999999)
+        curs.execute("insert into orders values (?, ?, ?)", (orderID, 'package', date))
         conn.commit()
     else:
-        dateID = date[0]
+        dateID = order[0]
         print("Date already exists, dateID is", dateID)
 
 # Check if the pickup address exists, if does retrieve pickupID, if not create a new random pickupID
 def check_pickup():
-    global pickupID
-    curs.execute("select * from location where address = ?", (address))
+    global locationID
+    curs.execute("select * from location where address = ?", (address,))
     pickup = curs.fetchone()
     if pickup is None:
-        pickupID = random.randint(100000, 999999)
-        curs.execute("insert into location values (?, ?)", (pickupID, address))
+        locationID = random.randint(100000, 999999)
+        curs.execute("insert into location values (?, ?)", (locationID, address))
         conn.commit()
     else:
-        pickupID = pickup[0]
-        print("Pickup already exists, pickupID is", pickupID)
+        locationID = pickup[0]
+        print("Pickup already exists, pickupID is", locationID)
 
 # Check if the destination address exists, if does retrieve dropoffID, if not create a new random dropoffID
 def check_dropoff():
-    global dropoffID
-    curs.execute("select * from location where address = ?", (destination))
+    global locationID
+    curs.execute("select * from location where address = ?", (destination,))
     dropoff = curs.fetchone()
     if dropoff is None:
-        dropoffID = random.randint(100000, 999999)
-        curs.execute("insert into location values (?, ?)", (dropoffID, destination))
+        locationID = random.randint(100000, 999999)
+        curs.execute("insert into location values (?, ?)", (locationID, destination))
         conn.commit()
     else:
-        dropoffID = dropoff[0]
-        print("Dropoff already exists, dropoffID is", dropoffID)
+        locationID = dropoff[0]
+        print("Dropoff already exists, dropoffID is", locationID)
 
+check_customer()
+check_payment()
+check_order()
+check_pickup()
+check_dropoff()
 
-#Legacy line so the SELECT line still works
-curs.execute('INSERT INTO order_history (name, phone, address, date, destination, payment, tip, total, status) VALUES (?,?,?,?,?,?,?,?,?)', (name, phone, address, date, destination, payment, tip, total, status))
+paysID = random.randint(100000, 999999)
+curs.execute("insert into pays values (?, ?, ?)", (paysID, customerID, paymentID))
+
+makesID = random.randint(100000, 999999)
+curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, orderID))
+
+hasID = random.randint(100000, 999999)
+curs.execute("insert into has values (?, ?, ?)", (hasID, orderID, paymentID))
+
+pickupID = random.randint(100000, 999999)
+curs.execute("insert into pickup values (?, ?, ?)", (pickupID, orderID, locationID))
+
+dropoffID = random.randint(100000, 999999)
+curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
 
 conn.commit()
 
 
-#Note this command is still selecting from the old table
+
+#Lists the customer's name and payment
 curs.execute(
 	"""
-	SELECT * FROM order_history
+	SELECT * FROM customer
+            INNER JOIN pays ON customer.customerID = pays.customerID
+            INNER JOIN payment ON pays.paymentID = payment.paymentID
 	"""
 )
 
