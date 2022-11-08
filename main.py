@@ -186,9 +186,6 @@ def create_order():
             break
 
 
-create_order()
-
-
 # Check if the customer exists, if does retrieve customerID, if not create a new random customerID
 def check_customer():
     global customerID
@@ -264,32 +261,59 @@ def check_dropoff():
         locationID = dropoff[0]
         print("Dropoff already exists, dropoffID is", locationID)
 
-
-check_customer()
-check_payment()
-check_order()
-check_pickup()
-check_dropoff()
-
-paysID = random.randint(100000, 999999)
-curs.execute("insert into pays values (?, ?, ?)", (paysID, customerID, paymentID))
-
-makesID = random.randint(100000, 999999)
-curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, orderID))
-
-hasID = random.randint(100000, 999999)
-curs.execute("insert into has values (?, ?, ?)", (hasID, orderID, paymentID))
-
-pickupID = random.randint(100000, 999999)
-curs.execute("insert into pickup values (?, ?, ?)", (pickupID, orderID, locationID))
-
-dropoffID = random.randint(100000, 999999)
-curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
-
 conn.commit()
 
 # Lists the customer's name and payment
-curs.execute(
+
+
+
+result = curs.fetchall()
+print(result)
+
+
+
+    
+
+
+def create_new_order():
+    create_order()
+    
+    check_customer()
+    check_payment()
+    check_order()
+    check_pickup()
+    check_dropoff()
+    
+    paysID = random.randint(100000, 999999)
+    curs.execute("insert into pays values (?, ?, ?)", (paysID, customerID, paymentID))
+    
+    makesID = random.randint(100000, 999999)
+    curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, orderID))
+    
+    hasID = random.randint(100000, 999999)
+    curs.execute("insert into has values (?, ?, ?)", (hasID, orderID, paymentID))
+    
+    pickupID = random.randint(100000, 999999)
+    curs.execute("insert into pickup values (?, ?, ?)", (pickupID, orderID, locationID))
+    
+    dropoffID = random.randint(100000, 999999)
+    curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
+
+
+# Retrieve orders that have status 0
+def incomplete():
+    curs.execute("select * from orders where status = 0")
+    incomplete = curs.fetchall()
+    print(incomplete)
+    
+# Todo:
+# Generate statistics (probably sql statements)
+def stats():
+    None
+
+# Todo: edit this.. make new joins, and add the headers
+def retrieve_table():
+    curs.execute(
     """
 	SELECT * FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
@@ -297,9 +321,21 @@ curs.execute(
 	"""
 )
 
-result = curs.fetchall()
-print(result)
-
 
 # Todo:
 # Navigation system: 1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.
+if __name__ == "__main__":
+    print("Hello, user!")
+    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.")
+    action = input("Choose: ")
+    if action == "1":
+        create_new_order()
+    elif action == "2":
+        incomplete()
+    elif action == "3":
+        stats()
+    elif action == "4":
+        retrieve_table()
+    else:
+        print("Invalid input")
+    
