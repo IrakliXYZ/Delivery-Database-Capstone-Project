@@ -4,15 +4,15 @@
 # export to excel
 # dashboard showing n of deliveries
 
-
-import sqlite3, os, sys
-import datetime, time
+import sqlite3
+import os
+import sys
+import datetime
+import time
 import random
 
-
-conn = sqlite3.connect('delivery_database.db')
+conn = sqlite3.connect("delivery_database.db")
 curs = conn.cursor()
-
 
 # Create the tables
 curs.execute(
@@ -114,7 +114,7 @@ conn.commit()
 def create_order():
     print("Creating a new order")
     print("Please enter the following information")
-    
+
     global name, phone, address, date, destination, cpayment, tip, total, status
 
     # Get the customer's name
@@ -159,7 +159,7 @@ def create_order():
             print("Please enter a payment method")
         else:
             break
-            
+
     # Get the customer's order tip
     while True:
         tip = input("Customer's order tip: ")
@@ -167,7 +167,7 @@ def create_order():
             print("Please enter an order tip")
         else:
             break
-            
+
     # Get the customer's order total
     while True:
         total = input("Customer's order total: ")
@@ -185,6 +185,7 @@ def create_order():
         else:
             break
 
+
 create_order()
 
 
@@ -201,18 +202,26 @@ def check_customer():
         customerID = customer[0]
         print("Customer already exists, customerID is", customerID)
 
+
 # Check if the payment exists, if does retrieve paymentID, if not create a new random paymentID
 def check_payment():
     global paymentID
-    curs.execute("select * from payment where payment = ? and tip = ? and total = ? and status = ?", (cpayment, tip, total, status))
+    curs.execute(
+        "select * from payment where payment = ? and tip = ? and total = ? and status = ?",
+        (cpayment, tip, total, status),
+    )
     payment = curs.fetchone()
     if payment is None:
         paymentID = random.randint(100000, 999999)
-        curs.execute("insert into payment values (?, ?, ?, ?, ?)", (paymentID, cpayment, tip, total, status))
+        curs.execute(
+            "insert into payment values (?, ?, ?, ?, ?)",
+            (paymentID, cpayment, tip, total, status),
+        )
         conn.commit()
     else:
         paymentID = payment[0]
         print("Payment already exists, paymentID is", paymentID)
+
 
 # Check if date exists, if does retrieve dateID, if not create a new random dateID
 def check_order():
@@ -221,11 +230,12 @@ def check_order():
     order = curs.fetchone()
     if order is None:
         orderID = random.randint(100000, 999999)
-        curs.execute("insert into orders values (?, ?, ?)", (orderID, 'package', date))
+        curs.execute("insert into orders values (?, ?, ?)", (orderID, "package", date))
         conn.commit()
     else:
         dateID = order[0]
         print("Date already exists, dateID is", dateID)
+
 
 # Check if the pickup address exists, if does retrieve pickupID, if not create a new random pickupID
 def check_pickup():
@@ -240,6 +250,7 @@ def check_pickup():
         locationID = pickup[0]
         print("Pickup already exists, pickupID is", locationID)
 
+
 # Check if the destination address exists, if does retrieve dropoffID, if not create a new random dropoffID
 def check_dropoff():
     global locationID
@@ -252,6 +263,7 @@ def check_dropoff():
     else:
         locationID = dropoff[0]
         print("Dropoff already exists, dropoffID is", locationID)
+
 
 check_customer()
 check_payment()
@@ -276,17 +288,18 @@ curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locati
 
 conn.commit()
 
-
-
-#Lists the customer's name and payment
+# Lists the customer's name and payment
 curs.execute(
-	"""
+    """
 	SELECT * FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
 	"""
 )
 
-result = curs.fetchall();
+result = curs.fetchall()
 print(result)
 
+
+# Todo:
+# Navigation system: 1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.
