@@ -30,8 +30,7 @@ curs.execute(
         paymentID int primary key,
         payment float,
         tip float,
-        total float,
-        status binary
+        total float
     );
      """
 )
@@ -39,8 +38,9 @@ curs.execute(
     """
     create table if not exists orders(
         ordersID int primary key,
-        packageorperson VARCHAR(10),
-        date DATETIME
+        type VARCHAR(10),
+        date DATETIME,
+        status binary
     );
     """
 )
@@ -115,7 +115,7 @@ def create_order():
     print("Creating a new order")
     print("Please enter the following information")
 
-    global name, phone, address, date, destination, cpayment, tip, total, status
+    global name, phone, address, date, destination, cpayment, tip, total, status, type
 
     # Get the customer's name
     while True:
@@ -185,6 +185,14 @@ def create_order():
         else:
             break
 
+    #Get order type
+    while True:
+        type = input("Type \"package\" or \"person\": ")
+        if type == "":
+            print("Please enter an order type")
+        else:
+            break
+
 
 # Check if the customer exists, if does retrieve customerID, if not create a new random customerID
 def check_customer():
@@ -204,15 +212,15 @@ def check_customer():
 def check_payment():
     global paymentID
     curs.execute(
-        "select * from payment where payment = ? and tip = ? and total = ? and status = ?",
-        (cpayment, tip, total, status),
+        "select * from payment where payment = ? and tip = ? and total = ?",
+        (cpayment, tip, total),
     )
     payment = curs.fetchone()
     if payment is None:
         paymentID = random.randint(100000, 999999)
         curs.execute(
-            "insert into payment values (?, ?, ?, ?, ?)",
-            (paymentID, cpayment, tip, total, status),
+            "insert into payment values (?, ?, ?, ?)",
+            (paymentID, cpayment, tip, total),
         )
         conn.commit()
     else:
@@ -223,11 +231,11 @@ def check_payment():
 # Check if date exists, if does retrieve dateID, if not create a new random dateID
 def check_order():
     global orderID
-    curs.execute("select * from orders where date = ?", (date,))
+    curs.execute("select * from orders where date = ? and status = ? and type = ?", (date, status, type))
     order = curs.fetchone()
     if order is None:
         orderID = random.randint(100000, 999999)
-        curs.execute("insert into orders values (?, ?, ?)", (orderID, "package", date))
+        curs.execute("insert into orders values (?, ?, ?, ?)", (orderID, type, date, status))
         conn.commit()
     else:
         dateID = order[0]
