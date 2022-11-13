@@ -28,9 +28,10 @@ curs.execute(
     """
     create table if not exists payment(
         paymentID int primary key,
-        payment float,
+        paymentAmount float,
         tip float,
-        total float
+        total float,
+        paymentType VARCHAR(10)
     );
      """
 )
@@ -212,15 +213,15 @@ def check_customer():
 def check_payment():
     global paymentID
     curs.execute(
-        "select * from payment where payment = ? and tip = ? and total = ?",
+        "select * from payment where paymentType = ? and tip = ? and total = ?",
         (cpayment, tip, total),
     )
     payment = curs.fetchone()
     if payment is None:
         paymentID = random.randint(100000, 999999)
         curs.execute(
-            "insert into payment values (?, ?, ?, ?)",
-            (paymentID, cpayment, tip, total),
+            "insert into payment values (?, ?, ?, ?, ?)",
+            (paymentID, float(total)-float(tip), tip, total, cpayment),
         )
         conn.commit()
     else:
@@ -269,7 +270,6 @@ def check_dropoff():
         locationID = dropoff[0]
         print("Dropoff already exists, dropoffID is", locationID)
 
-conn.commit()
 
 # Lists the customer's name and payment
 
@@ -307,6 +307,8 @@ def create_new_order():
     dropoffID = random.randint(100000, 999999)
     curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
 
+    conn.commit()
+
 
 # Retrieve orders that have status 0
 def incomplete():
@@ -323,11 +325,21 @@ def stats():
 def retrieve_table():
     curs.execute(
     """
-	SELECT * FROM customer
+	SELECT customer.name, customer.phone,
+	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
+	orders.type, orders.date, orders.status,
+	pick.address
+	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
-	"""
-)
+            INNER JOIN makes ON customer.customerID = makes.customerID
+            INNER JOIN orders ON makes.orderID = orders.ordersID
+            INNER JOIN pickup ON pickup.orderID = orders.ordersID
+            INNER JOIN location AS pick ON pickup.locationID = pick.locationID
+    """)
+    result = curs.fetchall()
+    print(result)
+
 
 
 # Todo:
