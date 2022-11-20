@@ -28,9 +28,10 @@ curs.execute(
     """
     create table if not exists payment(
         paymentID int primary key,
-        payment float,
+        paymentAmount float,
         tip float,
-        total float
+        total float,
+        paymentType VARCHAR(10)
     );
      """
 )
@@ -212,15 +213,15 @@ def check_customer():
 def check_payment():
     global paymentID
     curs.execute(
-        "select * from payment where payment = ? and tip = ? and total = ?",
+        "select * from payment where paymentType = ? and tip = ? and total = ?",
         (cpayment, tip, total),
     )
     payment = curs.fetchone()
     if payment is None:
         paymentID = random.randint(100000, 999999)
         curs.execute(
-            "insert into payment values (?, ?, ?, ?)",
-            (paymentID, cpayment, tip, total),
+            "insert into payment values (?, ?, ?, ?, ?)",
+            (paymentID, float(total)-float(tip), tip, total, cpayment),
         )
         conn.commit()
     else:
@@ -258,18 +259,17 @@ def check_pickup():
 
 # Check if the destination address exists, if does retrieve dropoffID, if not create a new random dropoffID
 def check_dropoff():
-    global locationID
+    global locationDropID
     curs.execute("select * from location where address = ?", (destination,))
     dropoff = curs.fetchone()
     if dropoff is None:
-        locationID = random.randint(100000, 999999)
-        curs.execute("insert into location values (?, ?)", (locationID, destination))
+        locationDropID = random.randint(100000, 999999)
+        curs.execute("insert into location values (?, ?)", (locationDropID, destination))
         conn.commit()
     else:
-        locationID = dropoff[0]
-        print("Dropoff already exists, dropoffID is", locationID)
+        locationDropID = dropoff[0]
+        print("Dropoff already exists, dropoffID is", locationDropID)
 
-conn.commit()
 
 # Lists the customer's name and payment
 
@@ -305,7 +305,9 @@ def create_new_order():
     curs.execute("insert into pickup values (?, ?, ?)", (pickupID, orderID, locationID))
     
     dropoffID = random.randint(100000, 999999)
-    curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
+    curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationDropID))
+
+    conn.commit()
 
 
 # Retrieve orders that have status 0
@@ -323,11 +325,23 @@ def stats():
 def retrieve_table():
     curs.execute(
     """
-	SELECT * FROM customer
+	SELECT customer.name, customer.phone,
+	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
+	orders.type, orders.date, orders.status,
+	pick.address, ending.address
+	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
-	"""
-)
+            INNER JOIN makes ON customer.customerID = makes.customerID
+            INNER JOIN orders ON makes.orderID = orders.ordersID
+            INNER JOIN pickup ON pickup.orderID = orders.ordersID
+            INNER JOIN location pick ON pickup.locationID = pick.locationID
+            INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
+            INNER JOIN location ending ON dropoff.locationID = ending.locationID
+    """)
+    result = curs.fetchall()
+    print(result)
+
 
 
 # Todo:
