@@ -259,16 +259,16 @@ def check_pickup():
 
 # Check if the destination address exists, if does retrieve dropoffID, if not create a new random dropoffID
 def check_dropoff():
-    global locationID
+    global locationDropID
     curs.execute("select * from location where address = ?", (destination,))
     dropoff = curs.fetchone()
     if dropoff is None:
-        locationID = random.randint(100000, 999999)
-        curs.execute("insert into location values (?, ?)", (locationID, destination))
+        locationDropID = random.randint(100000, 999999)
+        curs.execute("insert into location values (?, ?)", (locationDropID, destination))
         conn.commit()
     else:
-        locationID = dropoff[0]
-        print("Dropoff already exists, dropoffID is", locationID)
+        locationDropID = dropoff[0]
+        print("Dropoff already exists, dropoffID is", locationDropID)
 
 
 # Lists the customer's name and payment
@@ -305,7 +305,7 @@ def create_new_order():
     curs.execute("insert into pickup values (?, ?, ?)", (pickupID, orderID, locationID))
     
     dropoffID = random.randint(100000, 999999)
-    curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationID))
+    curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, orderID, locationDropID))
 
     conn.commit()
 
@@ -328,14 +328,16 @@ def retrieve_table():
 	SELECT customer.name, customer.phone,
 	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
 	orders.type, orders.date, orders.status,
-	pick.address
+	pick.address, ending.address
 	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
             INNER JOIN makes ON customer.customerID = makes.customerID
             INNER JOIN orders ON makes.orderID = orders.ordersID
             INNER JOIN pickup ON pickup.orderID = orders.ordersID
-            INNER JOIN location AS pick ON pickup.locationID = pick.locationID
+            INNER JOIN location pick ON pickup.locationID = pick.locationID
+            INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
+            INNER JOIN location ending ON dropoff.locationID = ending.locationID
     """)
     result = curs.fetchall()
     print(result)
