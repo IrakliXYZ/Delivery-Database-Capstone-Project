@@ -1,5 +1,4 @@
 # todo:
-# delivery status: canceled?
 # setup tkinter ui
 # he makes mistakes so... editable
 # export to excel
@@ -315,43 +314,20 @@ def incomplete():
     incomplete = curs.fetchall()
     print(incomplete)
     
-
+# Todo:
 # Generate statistics (probably sql statements)
 def stats():
-    # Total number of orders
-    curs.execute("select count(*) from orders")
-    total_orders = curs.fetchone()
-    # Total number of orders that are complete
-    curs.execute("select count(*) from orders where status = 1")
-    complete_orders = curs.fetchone()
-    # Total number of orders that are incomplete
-    curs.execute("select count(*) from orders where status = 0")
-    incomplete_orders = curs.fetchone()
-    # Number of orders created today
-    curs.execute("select count(*) from orders where date = date('now')") # not sure if this is correct
-    today_orders = curs.fetchone()
-    # Number of orders created this week
-    # Total earnings
-    curs.execute("select sum(total) from payment")
-    total_earnings = curs.fetchone()
-    # Average order tip
-    curs.execute("select avg(tip) from payment")
-    avg_tip = curs.fetchone()
-    # Average order total
-    curs.execute("select avg(total) from payment")
-    avg_total = curs.fetchone()
-
+    None
 
 # Todo: edit this.. make new joins, and add the headers
 def retrieve_table():
-    retrieved_table = curs.execute(
+    curs.execute(
     """
 	SELECT * FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
 	"""
 )
-    print(retrieved_table)
 
 
 # Todo:
@@ -370,3 +346,4 @@ if __name__ == "__main__":
         retrieve_table()
     else:
         print("Invalid input")
+    
