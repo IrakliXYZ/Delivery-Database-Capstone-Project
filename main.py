@@ -313,7 +313,23 @@ def create_new_order():
 
 # Retrieve orders that have status 0
 def incomplete():
-    curs.execute("select * from orders where status = 0")
+    curs.execute(
+    """
+	SELECT customer.name, customer.phone,
+	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
+	orders.type, orders.date, orders.status,
+	pick.address, ending.address
+	FROM customer
+            INNER JOIN pays ON customer.customerID = pays.customerID
+            INNER JOIN payment ON pays.paymentID = payment.paymentID
+            INNER JOIN makes ON customer.customerID = makes.customerID
+            INNER JOIN orders ON makes.orderID = orders.ordersID
+            INNER JOIN pickup ON pickup.orderID = orders.ordersID
+            INNER JOIN location pick ON pickup.locationID = pick.locationID
+            INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
+            INNER JOIN location ending ON dropoff.locationID = ending.locationID
+        WHERE orders.status = 0
+    """)
     incomplete = curs.fetchall()
     print(incomplete)
     
@@ -382,4 +398,3 @@ if __name__ == "__main__":
         retrieve_table()
     else:
         print("Invalid input")
-    
