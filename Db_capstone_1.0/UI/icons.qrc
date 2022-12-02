@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>ico/cil-browser.png</file>
+    <file>ico/cil-browserB.png</file>
+    <file>ico/cil-chart-line.png</file>
+    <file>ico/cil-chart-lineB.png</file>
+    <file>ico/cil-library-add.png</file>
+    <file>ico/cil-library-addB.png</file>
+    <file>ico/cil-menu.png</file>
+    <file>ico/cil-vertical-align-center.png</file>
+    <file>ico/cil-vertical-align-centerB.png</file>
+    <file>ico/cil-window-minimize.png</file>
+    <file>ico/cil-x.png</file>
+  </qresource>
+</RCC>
