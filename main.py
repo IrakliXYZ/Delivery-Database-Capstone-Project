@@ -22,7 +22,7 @@ curs.execute(
     """
     create table if not exists customer(
         customerID int primary key,
-        name varchar(30) not null,
+        name varchar(64) not null,
         phone varchar(20) not null
     );
     """
@@ -44,7 +44,7 @@ curs.execute(
         ordersID int primary key,
         type VARCHAR(10),
         date DATETIME,
-        status binary
+        status int
     );
     """
 )
@@ -52,7 +52,7 @@ curs.execute(
     """
     create table if not exists location(
         locationID int primary key,
-        address VARCHAR(45)
+        address VARCHAR(64)
     );
     """
 )
@@ -415,7 +415,11 @@ def delete_order():
     curs.execute("DELETE FROM orders WHERE ordersID = ?",(changedOrdersID,))
     conn.commit()
 
+
 def edit_order():
+
+    global name, phone, address, date, destination, cpayment, tip, total, status, type
+
     while True:
         IDNeeded = input("Order ID: ")
         if IDNeeded == "":
@@ -426,7 +430,11 @@ def edit_order():
     curs.execute(
     """
 	SELECT customer.customerID, payment.paymentID,
-	orders.ordersID, pick.locationID, ending.locationID
+	orders.ordersID, pick.locationID, ending.locationID,
+	customer.name, customer.phone,
+	payment.tip, payment.total, payment.paymentType,
+	orders.type, orders.date, orders.status,
+	pick.address, ending.address
 	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
@@ -445,7 +453,13 @@ def edit_order():
     changedOrdersID = (result[0][2])
     changedPickupID = (result[0][3])
     changedDropoffID = (result[0][4])
-
+    name = (result[0][5])
+    phone = (result[0][6])
+    tip = (result[0][7])
+    total = (result[0][8])
+    cpayment = (result[0][9])
+    address = (result[0][13])
+    destination = (result[0][14])
 
     while True:
         toUpdate = input("Select what you wish to update: ")
@@ -457,38 +471,79 @@ def edit_order():
     newValue = input("What would you like the new value to be? ")
 
     if toUpdate == "name":
-        curs.execute("UPDATE customer SET name = ? WHERE customerID = ?",(newValue, changedCustomerID))
-        conn.commit()
+        name = newValue
+        check_customer()
+        
+        paysID = random.randint(100000, 999999)
+        curs.execute("insert into pays values (?, ?, ?)", (paysID, customerID, changedPaymentID))
+    
+        makesID = random.randint(100000, 999999)
+        curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, changedOrdersID))
+    
     elif toUpdate == "phone":
-        curs.execute("UPDATE customer SET phone = ? WHERE customerID = ?",(newValue, changedCustomerID))
-        conn.commit()
-    elif toUpdate == "paymentAmount":
-        curs.execute("UPDATE payment SET paymentAmount = ? WHERE paymentID = ?",(newValue, changedPaymentID))
-        conn.commit()
+        phone = newValue
+        check_customer()
+        
+        paysID = random.randint(100000, 999999)
+        curs.execute("insert into pays values (?, ?, ?)", (paysID, customerID, changedPaymentID))
+    
+        makesID = random.randint(100000, 999999)
+        curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, changedOrdersID))
+    
     elif toUpdate == "tip":
-        curs.execute("UPDATE payment SET tip = ? WHERE paymentID = ?",(newValue, changedPaymentID))
-        conn.commit()
+        tip = newValue
+        check_payment()
+
+        paysID = random.randint(100000, 999999)
+        curs.execute("insert into pays values (?, ?, ?)", (paysID, changedCustomerID, paymentID))
+
+        hasID = random.randint(100000, 999999)
+        curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+    
     elif toUpdate == "total":
-        curs.execute("UPDATE payment SET total = ? WHERE paymentID = ?",(newValue, changedPaymentID))
-        conn.commit()
+        total = newValue
+        check_payment()
+
+        paysID = random.randint(100000, 999999)
+        curs.execute("insert into pays values (?, ?, ?)", (paysID, changedCustomerID, paymentID))
+
+        hasID = random.randint(100000, 999999)
+        curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+    
     elif toUpdate == "paymentType":
-        curs.execute("UPDATE payment SET paymentType = ? WHERE paymentID = ?",(newValue, changedPaymentID))
-        conn.commit()
+        cpayment = newValue
+        check_payment()
+
+        paysID = random.randint(100000, 999999)
+        curs.execute("insert into pays values (?, ?, ?)", (paysID, changedCustomerID, paymentID))
+
+        hasID = random.randint(100000, 999999)
+        curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+    
     elif toUpdate == "type":
         curs.execute("UPDATE orders SET type = ? WHERE ordersID = ?",(newValue, changedOrdersID))
         conn.commit()
     elif toUpdate == "status":
         curs.execute("UPDATE orders SET status = ? WHERE ordersID = ?",(newValue, changedOrdersID))
         conn.commit()
+        
     elif toUpdate == "pickup":
-        curs.execute("UPDATE location SET address = ? WHERE locationID = ?",(newValue, changedPickupID))
-        conn.commit()
-    elif toUpdate == "dropoff":
-        curs.execute("UPDATE location SET address = ? WHERE locationID = ?",(newValue, changedDropoffID))
-        conn.commit()
+        address = newValue
+        check_pickup()
 
-def make_complete():
-    print('')
+        pickupID = random.randint(100000, 999999)
+        curs.execute("insert into pickup values (?, ?, ?)", (pickupID, changedOrdersID, locationID))
+    
+    elif toUpdate == "dropoff":
+        destination = newValue
+        check_dropoff()
+        
+        dropoffID = random.randint(100000, 999999)
+        curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, changedOrdersID, locationDropID))
+
+
+
+
 
 #TODO SEBASTIAN remove status from create order and make it just 0, make
     #A separate function that just makes it complete.
