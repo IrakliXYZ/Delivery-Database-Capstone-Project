@@ -434,7 +434,8 @@ def edit_order():
 	customer.name, customer.phone,
 	payment.tip, payment.total, payment.paymentType,
 	orders.type, orders.date, orders.status,
-	pick.address, ending.address
+	pick.address, ending.address,
+	pays.paysID, makes.makesID, has.hasID, pickup.pickupID, dropoff.dropoffID
 	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
@@ -444,6 +445,7 @@ def edit_order():
             INNER JOIN location pick ON pickup.locationID = pick.locationID
             INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
             INNER JOIN location ending ON dropoff.locationID = ending.locationID
+            INNER JOIN has ON has.orderID = orders.ordersID
         WHERE orders.ordersID = ?
     """, (IDNeeded,))
 
@@ -460,6 +462,12 @@ def edit_order():
     cpayment = (result[0][9])
     address = (result[0][13])
     destination = (result[0][14])
+    oldPaysID = (result[0][15])
+    oldMakesID = (result[0][16])
+    oldHasID = (result[0][17])
+    oldPickupID = (result[0][18])
+    oldDropoffID = (result[0][19])
+
 
     while True:
         toUpdate = input("Select what you wish to update: ")
@@ -479,7 +487,10 @@ def edit_order():
     
         makesID = random.randint(100000, 999999)
         curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, changedOrdersID))
-    
+
+        curs.execute("DELETE FROM pays WHERE paysID = ?", (oldPaysID,))
+        curs.execute("DELETE FROM makes WHERE makesID = ?", (oldMakesID,))
+        
     elif toUpdate == "phone":
         phone = newValue
         check_customer()
@@ -489,7 +500,10 @@ def edit_order():
     
         makesID = random.randint(100000, 999999)
         curs.execute("insert into makes values (?, ?, ?)", (makesID, customerID, changedOrdersID))
-    
+
+        curs.execute("DELETE FROM pays WHERE paysID = ?", (oldPaysID,))
+        curs.execute("DELETE FROM makes WHERE makesID = ?", (oldMakesID,))
+        
     elif toUpdate == "tip":
         tip = newValue
         check_payment()
@@ -499,6 +513,9 @@ def edit_order():
 
         hasID = random.randint(100000, 999999)
         curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+
+        curs.execute("DELETE FROM pays WHERE paysID = ?",(oldPaysID,))
+        curs.execute("DELETE FROM has WHERE hasID = ?",(oldHasID,))
     
     elif toUpdate == "total":
         total = newValue
@@ -509,6 +526,9 @@ def edit_order():
 
         hasID = random.randint(100000, 999999)
         curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+
+        curs.execute("DELETE FROM pays WHERE paysID = ?",(oldPaysID,))
+        curs.execute("DELETE FROM has WHERE hasID = ?",(oldHasID,))
     
     elif toUpdate == "paymentType":
         cpayment = newValue
@@ -519,6 +539,9 @@ def edit_order():
 
         hasID = random.randint(100000, 999999)
         curs.execute("insert into has values (?, ?, ?)", (hasID, changedOrdersID, paymentID))
+
+        curs.execute("DELETE FROM pays WHERE paysID = ?",(oldPaysID,))
+        curs.execute("DELETE FROM has WHERE hasID = ?",(oldHasID,))
     
     elif toUpdate == "type":
         curs.execute("UPDATE orders SET type = ? WHERE ordersID = ?",(newValue, changedOrdersID))
@@ -533,13 +556,20 @@ def edit_order():
 
         pickupID = random.randint(100000, 999999)
         curs.execute("insert into pickup values (?, ?, ?)", (pickupID, changedOrdersID, locationID))
-    
+
+        curs.execute("DELETE FROM pickup WHERE pickupID = ?",(oldPickupID,))
+        
     elif toUpdate == "dropoff":
         destination = newValue
         check_dropoff()
         
         dropoffID = random.randint(100000, 999999)
         curs.execute("insert into dropoff values (?, ?, ?)", (dropoffID, changedOrdersID, locationDropID))
+
+        curs.execute("DELETE FROM dropoff WHERE dropoffID = ?",(oldDropoffID,))
+
+
+    conn.commit()
 
 
 
