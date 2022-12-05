@@ -5,6 +5,8 @@
 # export to excel
 # dashboard showing n of deliveries
 
+#Function to edit and delete
+
 import sqlite3
 import os
 import sys
@@ -361,6 +363,7 @@ def stats():
 
 # Todo: edit this.. make new joins, and add the headers
 def retrieve_table():
+    
     curs.execute(
     """
 	SELECT customer.name, customer.phone,
@@ -380,13 +383,122 @@ def retrieve_table():
     result = curs.fetchall()
     print(result)
 
+#Just use order_ID as an insert to delete or update.
+def delete_order():
+    while True:
+        IDNeeded = input("Order ID: ")
+        if IDNeeded == "":
+            print("Please enter an ID")
+        else:
+            break
+
+    curs.execute(
+    """
+	SELECT customer.name, customer.phone,
+	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
+	orders.type, orders.date, orders.status,
+	pick.address, ending.address
+	FROM customer
+            INNER JOIN pays ON customer.customerID = pays.customerID
+            INNER JOIN payment ON pays.paymentID = payment.paymentID
+            INNER JOIN makes ON customer.customerID = makes.customerID
+            INNER JOIN orders ON makes.orderID = orders.ordersID
+            INNER JOIN pickup ON pickup.orderID = orders.ordersID
+            INNER JOIN location pick ON pickup.locationID = pick.locationID
+            INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
+            INNER JOIN location ending ON dropoff.locationID = ending.locationID
+        WHERE orders.ordersID = ?
+    """, (IDNeeded,))
+
+    result = curs.fetchall()
+    print(result[0])
+
+
+def edit_order():
+    while True:
+        IDNeeded = input("Order ID: ")
+        if IDNeeded == "":
+            print("Please enter an ID")
+        else:
+            break
+
+    curs.execute(
+    """
+	SELECT customer.customerID, payment.paymentID,
+	orders.ordersID, pick.locationID, ending.locationID
+	FROM customer
+            INNER JOIN pays ON customer.customerID = pays.customerID
+            INNER JOIN payment ON pays.paymentID = payment.paymentID
+            INNER JOIN makes ON customer.customerID = makes.customerID
+            INNER JOIN orders ON makes.orderID = orders.ordersID
+            INNER JOIN pickup ON pickup.orderID = orders.ordersID
+            INNER JOIN location pick ON pickup.locationID = pick.locationID
+            INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
+            INNER JOIN location ending ON dropoff.locationID = ending.locationID
+        WHERE orders.ordersID = ?
+    """, (IDNeeded,))
+
+    result = curs.fetchall()
+    changedCustomerID = (result[0][0])
+    changedPaymentID = (result[0][1])
+    changedOrdersID = (result[0][2])
+    changedPickupID = (result[0][3])
+    changedDropoffID = (result[0][4])
+
+
+    while True:
+        toUpdate = input("Select what you wish to update: ")
+        if toUpdate == "":
+            print("Please enter a column name")
+        else:
+            break
+
+    newValue = input("What would you like the new value to be? ")
+
+    if toUpdate == "name":
+        curs.execute("UPDATE customer SET name = ? WHERE customerID = ?",(newValue, changedCustomerID))
+        conn.commit()
+    elif toUpdate == "phone":
+        curs.execute("UPDATE customer SET phone = ? WHERE customerID = ?",(newValue, changedCustomerID))
+        conn.commit()
+    elif toUpdate == "paymentAmount":
+        curs.execute("UPDATE payment SET paymentAmount = ? WHERE paymentID = ?",(newValue, changedPaymentID))
+        conn.commit()
+    elif toUpdate == "tip":
+        curs.execute("UPDATE payment SET tip = ? WHERE paymentID = ?",(newValue, changedPaymentID))
+        conn.commit()
+    elif toUpdate == "total":
+        curs.execute("UPDATE payment SET total = ? WHERE paymentID = ?",(newValue, changedPaymentID))
+        conn.commit()
+    elif toUpdate == "paymentType":
+        curs.execute("UPDATE payment SET paymentType = ? WHERE paymentID = ?",(newValue, changedPaymentID))
+        conn.commit()
+    elif toUpdate == "type":
+        curs.execute("UPDATE orders SET type = ? WHERE ordersID = ?",(newValue, changedOrdersID))
+        conn.commit()
+    elif toUpdate == "status":
+        curs.execute("UPDATE orders SET status = ? WHERE ordersID = ?",(newValue, changedOrdersID))
+        conn.commit()
+    elif toUpdate == "pickup":
+        curs.execute("UPDATE location SET address = ? WHERE locationID = ?",(newValue, changedPickupID))
+        conn.commit()
+    elif toUpdate == "dropoff":
+        curs.execute("UPDATE location SET address = ? WHERE locationID = ?",(newValue, changedDropoffID))
+        conn.commit()
+
+def make_complete():
+    print('')
+
+#TODO SEBASTIAN remove status from create order and make it just 0, make
+    #A separate function that just makes it complete.
+
 
 
 # Todo:
 # Navigation system: 1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.
 if __name__ == "__main__":
     print("Hello, user!")
-    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.")
+    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table; 5. Delete order; 6. Edit order.")
     action = input("Choose: ")
     if action == "1":
         create_new_order()
@@ -396,5 +508,9 @@ if __name__ == "__main__":
         stats()
     elif action == "4":
         retrieve_table()
+    elif action == "5":
+        delete_order()
+    elif action == "6":
+        edit_order()
     else:
         print("Invalid input")
