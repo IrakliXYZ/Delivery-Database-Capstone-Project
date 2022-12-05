@@ -366,7 +366,7 @@ def retrieve_table():
     
     curs.execute(
     """
-	SELECT customer.name, customer.phone,
+	SELECT orders.ordersID, customer.name, customer.phone,
 	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
 	orders.type, orders.date, orders.status,
 	pick.address, ending.address
@@ -394,10 +394,7 @@ def delete_order():
 
     curs.execute(
     """
-	SELECT customer.name, customer.phone,
-	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
-	orders.type, orders.date, orders.status,
-	pick.address, ending.address
+	SELECT orders.ordersID
 	FROM customer
             INNER JOIN pays ON customer.customerID = pays.customerID
             INNER JOIN payment ON pays.paymentID = payment.paymentID
@@ -411,8 +408,12 @@ def delete_order():
     """, (IDNeeded,))
 
     result = curs.fetchall()
-    print(result[0])
+    changedOrdersID = (result[0][0])
 
+    #Since we have cascading delete, this will delete the order itself
+        #But leave the information such as the name/phone number for future use
+    curs.execute("DELETE FROM orders WHERE ordersID = ?",(changedOrdersID,))
+    conn.commit()
 
 def edit_order():
     while True:
