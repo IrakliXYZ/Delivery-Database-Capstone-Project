@@ -171,7 +171,6 @@ def create_order():
         else:
             break
 
-
     #Get order type
     while True:
         type = input("Type \"package\" or \"person\": ")
@@ -218,7 +217,7 @@ def check_payment():
 # Check if date exists, if does retrieve dateID, if not create a new random dateID
 def check_order():
     global orderID
-    curs.execute("select * from orders where date = ? and status = ? and type = ?", (date, status, type))
+    curs.execute("select * from orders where date = ? and type = ?", (date, type))
     order = curs.fetchone()
     if order is None:
         orderID = random.randint(100000, 999999)
@@ -255,8 +254,6 @@ def check_dropoff():
     else:
         locationDropID = dropoff[0]
         print("Dropoff already exists, dropoffID is", locationDropID)
-
-
 
 
     
@@ -310,7 +307,6 @@ def incomplete():
     for i in incomplete:
         print(i)
     
-# Todo:
 def stats():
     # Total number of orders
     curs.execute("select count(*) from orders")
@@ -322,7 +318,7 @@ def stats():
     curs.execute("select count(*) from orders where status = 0")
     incomplete_orders = curs.fetchone()
     # Number of orders created today
-    curs.execute("select count(*) from orders where date = date('now')") # not sure if this is correct
+    curs.execute("select count(*) from orders where date = date('now')")
     today_orders = curs.fetchone()
     # Number of orders created this week
     # Total earnings
@@ -335,9 +331,7 @@ def stats():
     curs.execute("select avg(total) from payment")
     avg_total = curs.fetchone()
 
-# Todo: edit this.. make new joins, and add the headers
 def retrieve_table():
-    
     curs.execute(
     """
 	SELECT orders.ordersID, customer.name, customer.phone,
@@ -577,11 +571,10 @@ def make_canceled():
     curs.execute("UPDATE orders SET status = 2 WHERE ordersID = ?",(IDNeeded,))
     conn.commit()
 
-# Todo:
 # Navigation system: 1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.
 if __name__ == "__main__":
     print("Hello, user!")
-    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table; 5. Delete order; 6. Edit order; 7. make_complete()")
+    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table; 5. Delete order; 6. Edit order; 7. Mark an order complete(); 8. Mark an order canceled.")
     action = input("Choose: ")
     if action == "1":
         create_new_order()
@@ -597,5 +590,7 @@ if __name__ == "__main__":
         edit_order()
     elif action == "7":
         make_complete()
+    elif action == "8":
+        make_canceled()
     else:
         print("Invalid input")
