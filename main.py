@@ -180,14 +180,6 @@ def create_order():
         else:
             break
 
-    # Get the customer's order status
-    # make this boolean
-    while True:
-        status = input("Customer's order status: ")
-        if status == "":
-            print("Please enter an order status")
-        else:
-            break
 
     #Get order type
     while True:
@@ -239,7 +231,7 @@ def check_order():
     order = curs.fetchone()
     if order is None:
         orderID = random.randint(100000, 999999)
-        curs.execute("insert into orders values (?, ?, ?, ?)", (orderID, type, date, status))
+        curs.execute("insert into orders values (?, ?, ?, ?)", (orderID, type, date, 0))
         conn.commit()
     else:
         dateID = order[0]
@@ -317,20 +309,19 @@ def create_new_order():
 def incomplete():
     curs.execute(
     """
-	SELECT customer.name, customer.phone,
+	SELECT orders.ordersID, customer.name, customer.phone,
 	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
 	orders.type, orders.date, orders.status,
 	pick.address, ending.address
-	FROM customer
-            INNER JOIN pays ON customer.customerID = pays.customerID
-            INNER JOIN payment ON pays.paymentID = payment.paymentID
-            INNER JOIN makes ON customer.customerID = makes.customerID
-            INNER JOIN orders ON makes.orderID = orders.ordersID
+	FROM orders
+            INNER JOIN has ON orders.ordersID = has.orderID
+            INNER JOIN payment ON has.paymentID = payment.paymentID
+            INNER JOIN makes ON orders.ordersID = makes.orderID
+            INNER JOIN customer ON makes.customerID = customer.customerID
             INNER JOIN pickup ON pickup.orderID = orders.ordersID
             INNER JOIN location pick ON pickup.locationID = pick.locationID
             INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
             INNER JOIN location ending ON dropoff.locationID = ending.locationID
-        WHERE orders.status = 0
     """)
     incomplete = curs.fetchall()
     for i in incomplete:
@@ -371,11 +362,11 @@ def retrieve_table():
 	payment.paymentAmount, payment.tip, payment.total, payment.paymentType,
 	orders.type, orders.date, orders.status,
 	pick.address, ending.address
-	FROM customer
-            INNER JOIN pays ON customer.customerID = pays.customerID
-            INNER JOIN payment ON pays.paymentID = payment.paymentID
-            INNER JOIN makes ON customer.customerID = makes.customerID
-            INNER JOIN orders ON makes.orderID = orders.ordersID
+	FROM orders
+            INNER JOIN has ON orders.ordersID = has.orderID
+            INNER JOIN payment ON has.paymentID = payment.paymentID
+            INNER JOIN makes ON orders.ordersID = makes.orderID
+            INNER JOIN customer ON makes.customerID = customer.customerID
             INNER JOIN pickup ON pickup.orderID = orders.ordersID
             INNER JOIN location pick ON pickup.locationID = pick.locationID
             INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
