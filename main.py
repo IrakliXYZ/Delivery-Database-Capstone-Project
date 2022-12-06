@@ -1,4 +1,3 @@
-
 import sqlite3
 import os
 import sys
@@ -259,14 +258,8 @@ def check_dropoff():
 
 
 
-result = curs.fetchall()
-print(result)
-
-
 
     
-
-
 def create_new_order():
     create_order()
     
@@ -570,8 +563,8 @@ def make_complete():
     curs.execute("UPDATE orders SET status = 1 WHERE ordersID = ?",(IDNeeded,))
     conn.commit()
 
-#This function just marks an order as cancelled, which is status=2
-def make_cancelled():
+#This function just marks an order as canceled, which is status=2
+def make_canceled():
     global name, phone, address, date, destination, cpayment, tip, total, status, type
 
     while True:
