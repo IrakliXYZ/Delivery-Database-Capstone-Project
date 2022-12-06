@@ -333,7 +333,8 @@ def incomplete():
         WHERE orders.status = 0
     """)
     incomplete = curs.fetchall()
-    print(incomplete)
+    for i in incomplete:
+        print(i)
     
 # Todo:
 # Generate statistics (probably sql statements)
@@ -381,7 +382,8 @@ def retrieve_table():
             INNER JOIN location ending ON dropoff.locationID = ending.locationID
     """)
     result = curs.fetchall()
-    print(result)
+    for i in result:
+        print(i)
 
 #Just use order_ID as an insert to delete or update.
 def delete_order():
