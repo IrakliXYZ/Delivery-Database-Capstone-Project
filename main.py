@@ -1,11 +1,3 @@
-# todo:
-# delivery status: canceled?
-# setup tkinter ui
-# he makes mistakes so... editable
-# export to excel
-# dashboard showing n of deliveries
-
-#Function to edit and delete
 
 import sqlite3
 import os
@@ -266,9 +258,6 @@ def check_dropoff():
         print("Dropoff already exists, dropoffID is", locationDropID)
 
 
-# Lists the customer's name and payment
-
-
 
 result = curs.fetchall()
 print(result)
@@ -322,13 +311,13 @@ def incomplete():
             INNER JOIN location pick ON pickup.locationID = pick.locationID
             INNER JOIN dropoff ON dropoff.orderID = orders.ordersID
             INNER JOIN location ending ON dropoff.locationID = ending.locationID
+        WHERE orders.status = 0
     """)
     incomplete = curs.fetchall()
     for i in incomplete:
         print(i)
     
 # Todo:
-# Generate statistics (probably sql statements)
 def stats():
     # Total number of orders
     curs.execute("select count(*) from orders")
@@ -566,18 +555,40 @@ def edit_order():
 
 
 
+#This function just changes an order to complete, it does not allow for undoing
+    #such-for that use edit_order()
+def make_complete():
+    global name, phone, address, date, destination, cpayment, tip, total, status, type
 
+    while True:
+        IDNeeded = input("Order ID: ")
+        if IDNeeded == "":
+            print("Please enter an ID")
+        else:
+            break
 
-#TODO SEBASTIAN remove status from create order and make it just 0, make
-    #A separate function that just makes it complete.
+    curs.execute("UPDATE orders SET status = 1 WHERE ordersID = ?",(IDNeeded,))
+    conn.commit()
 
+#This function just marks an order as cancelled, which is status=2
+def make_cancelled():
+    global name, phone, address, date, destination, cpayment, tip, total, status, type
 
+    while True:
+        IDNeeded = input("Order ID: ")
+        if IDNeeded == "":
+            print("Please enter an ID")
+        else:
+            break
+
+    curs.execute("UPDATE orders SET status = 2 WHERE ordersID = ?",(IDNeeded,))
+    conn.commit()
 
 # Todo:
 # Navigation system: 1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table.
 if __name__ == "__main__":
     print("Hello, user!")
-    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table; 5. Delete order; 6. Edit order.")
+    print("1. Enter new order; 2. Retrieve incomplete orders; 3. See stats; 4. See whole table; 5. Delete order; 6. Edit order; 7. make_complete()")
     action = input("Choose: ")
     if action == "1":
         create_new_order()
@@ -591,5 +602,7 @@ if __name__ == "__main__":
         delete_order()
     elif action == "6":
         edit_order()
+    elif action == "7":
+        make_complete()
     else:
         print("Invalid input")
